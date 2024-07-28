@@ -16,7 +16,17 @@ typedef struct {
     char mode;
 } Guess;
 
-Guess* createGuess()
+/**
+ * @brief Creates a new guess
+ *
+ * This function initializes a new guess data type with
+ * specific horizontal and vertical (gHor and gVer) coordinates
+ * which will be converted later
+ *
+ * @return A pointer to the newly created guess
+ */
+
+Guess* createGuess(unsigned short maxHor, unsigned short maxVer)
 {
     printf("Enter 'F' or 'D' (Flag or Destroy), followed by coordinates, starting at 1,1 from the bottom left.\n");
     printf("Ex: F 1,1 -> flags the bottom left hand corner\n");
@@ -24,7 +34,19 @@ Guess* createGuess()
     unsigned short gVer;
     unsigned short gHor;
     char gMode;
-    scanf(" %c %hu,%hu", &gMode, &gHor, &gVer);
+    int result = scanf(" %c %hu,%hu", &gMode, &gHor, &gVer);
+
+    // Validate input
+    if (result != 3 || (gMode != 'F' && gMode != 'D')) {
+        printf("Invalid input. Please enter a valid mode and coordinates.\n");
+        return NULL;
+    }
+
+    // Check if coordinates are within bounds
+    if (gHor < 1 || gHor > maxHor || gVer < 1 || gVer > maxVer) {
+        printf("Coordinates out of bounds. Please enter coordinates within the board dimensions.\n");
+        return NULL;
+    }
 
     Guess* guess = (Guess*)malloc(sizeof(Guess));
     if (guess == NULL) {
@@ -32,19 +54,43 @@ Guess* createGuess()
         return NULL;
     }
 
-    guess->hor = gHor - 1;
-    guess->ver = gVer - 1;
+    guess->hor = gHor - 1; // Convert to 0-based index
+    guess->ver = gVer - 1; // Convert to 0-based index
     guess->mode = gMode;
 
-    printf("User Guess: Mode: %c, Hor: %hu, Ver: %hu\n", gMode, gHor, gVer); // Debugging
+    // Debugging output
+    printf("User Guess: Mode: %c, Hor: %hu, Ver: %hu\n", gMode, gHor, gVer);
+    printf("Converted Guess: Hor: %hu, Ver: %hu\n", guess->hor, guess->ver);
 
     return guess;
 }
+
+/**
+ * @brief frees the memory allocated to the guess
+ *
+ * This function deallocates the memory associated with the given guess,
+ * which includes its horizontal and vertical coordinates, as well as
+ * its mode
+ *
+ * @param g the guess which will be freed
+ */
 
 void freeGuess(Guess* g)
 {
     free(g);
 }
+
+/**
+ * @brief Creates a new game board with the specified dimensions.
+ *
+ * This function initializes a new game board with the given horizontal (hor)
+ * and vertical (ver) dimensions. All cells in the board are initialized to 0.
+ * Memory for the board structure and its data array is allocated dynamically.
+ *
+ * @param hor The horizontal dimension (number of columns) of the board.
+ * @param ver The vertical dimension (number of rows) of the board.
+ * @return A pointer to the newly created Board structure, or NULL if memory allocation fails.
+ */
 
 Board* createBoard(unsigned short hor, unsigned short ver)
 {
@@ -85,6 +131,17 @@ Board* createBoard(unsigned short hor, unsigned short ver)
     return board;
 }
 
+/**
+ * @brief Frees the memory allocated for the game board.
+ *
+ * This function deallocates the memory associated with the given Board structure,
+ * including the memory allocated for its data array. It ensures that all allocated
+ * memory is properly freed to avoid memory leaks.
+ *
+ * @param board A pointer to the Board structure to be freed. If the pointer is NULL,
+ *              the function does nothing.
+ */
+
 void freeBoard(Board* board)
 {
     if (board != NULL) {
@@ -96,7 +153,20 @@ void freeBoard(Board* board)
     }
 }
 
-Board* makeBinBoard(unsigned short hor, unsigned short ver, unsigned int bomb_count)
+/**
+ * @brief Creates a game board with the specified dimensions and randomly places bombs.
+ *
+ * This function initializes a new game board with the given horizontal (hor) and vertical (ver)
+ * dimensions and randomly places the specified number of bombs (bomb_count) on the board.
+ * Bombs are represented by the value 9. The central cell is ensured to be bomb-free.
+ *
+ * @param hor The horizontal dimension (number of columns) of the board.
+ * @param ver The vertical dimension (number of rows) of the board.
+ * @param bomb_count The number of bombs to be placed on the board.
+ * @return A pointer to the newly created Board structure, or NULL if memory allocation fails.
+ */
+
+Board* createBinaryBoard(unsigned short hor, unsigned short ver, unsigned int bomb_count)
 {
     Board* board = createBoard(hor, ver);
 
@@ -116,7 +186,16 @@ Board* makeBinBoard(unsigned short hor, unsigned short ver, unsigned int bomb_co
     return board;
 }
 
-void generateUserBoard(Board* board)
+/**
+ * @brief Populates the board with the number of bombs in adjacent cells.
+ *
+ * This function calculates the number of bombs adjacent to each cell on the board
+ * and updates each cell with this count. Cells containing bombs (value 9) are not updated.
+ *
+ * @param board A pointer to the Board structure whose cells are to be populated.
+ */
+
+void populateNumberReferences(Board* board)
 {
     int directions[8][2] = {
         { -1, -1 }, { -1, 0 }, { -1, 1 },
@@ -147,6 +226,15 @@ void generateUserBoard(Board* board)
     }
 }
 
+/**
+ * @brief Prints the game board to the console.
+ *
+ * This function prints the game board to the console, with bombs represented by an asterisk (*)
+ * and other cells showing the number of adjacent bombs.
+ *
+ * @param board A pointer to the Board structure to be printed.
+ */
+
 void printBoard(Board* board)
 {
     for (int j = board->ver - 1; j >= 0; j--) {
@@ -161,6 +249,18 @@ void printBoard(Board* board)
     }
 }
 
+/**
+ * @brief Converts user guess coordinates to board coordinates.
+ *
+ * This function converts the user-provided guess coordinates from 1-based indexing to
+ * 0-based indexing used internally by the board. It returns a dynamically allocated array
+ * containing the converted coordinates.
+ *
+ * @param guess A pointer to the Guess structure containing the user's guess coordinates.
+ * @param board A pointer to the Board structure to which the coordinates will be applied.
+ * @return A dynamically allocated array of two unsigned shorts representing the converted coordinates.
+ */
+
 unsigned short* convertGuessCoords(Guess* guess, Board* board)
 {
     unsigned short h = guess->hor;
@@ -174,36 +274,47 @@ unsigned short* convertGuessCoords(Guess* guess, Board* board)
     return r_val;
 }
 
-bool takeTurn(Board* bombB)
+/**
+ * @brief Processes a user's guess and determines if it hits a bomb.
+ *
+ * This function handles the user's guess by checking for validity,
+ * and determining if the guess hits a bomb. It prints relevant information for debugging and
+ * returns whether the guess was a bomb.
+ *
+ * @param bombB A pointer to the Board structure containing the bomb placements.
+ * @param flagB A pointer to the Board structure containing the flag placements.
+ * @return true if the guess hits a bomb, false otherwise.
+ */
+
+bool takeTurn(Board* bombB, Board* flagB)
 {
-    Guess* guess = createGuess();
+    Guess* guess = createGuess(bombB->hor, bombB->ver);
     if (guess == NULL) {
         return false;
     }
 
-    unsigned short* guessCoords = convertGuessCoords(guess, bombB);
+    unsigned short guessHor = guess->hor;
+    unsigned short guessVer = guess->ver;
 
-    if (guessCoords[0] >= bombB->hor || guessCoords[1] >= bombB->ver) {
-        printf("Invalid coordinates.\n");
-        free(guessCoords);
+    // Additional check to ensure coordinates are valid
+    if (guessHor >= bombB->hor || guessVer >= bombB->ver) {
+        printf("Invalid coordinates: %hu,%hu\n", guessHor, guessVer);
         freeGuess(guess);
         return false;
     }
 
-    printf("Guess coordinates: %hu,%hu\n", guessCoords[0], guessCoords[1]);
-
     // Print the corresponding row of the board
-    printf("Board row at %hu: ", guessCoords[0]);
+    printf("Guess coordinates: %hu,%hu\n", guessHor, guessVer);
+    printf("Board row at %hu: ", guessHor);
     for (int i = 0; i < bombB->ver; i++) {
-        printf("%d ", bombB->data[guessCoords[0]][i]);
+        printf("%d ", bombB->data[guessHor][i]);
     }
     printf("\n");
 
-    printf("Bomb value: %d\n", bombB->data[guessCoords[0]][guessCoords[1]]);
+    printf("Bomb value: %d\n", bombB->data[guessHor][guessVer]);
 
-    bool isBomb = (bombB->data[guessCoords[0]][guessCoords[1]] == 9);
+    bool isBomb = (bombB->data[guessHor][guessVer] == 9);
 
-    free(guessCoords);
     freeGuess(guess);
     return isBomb;
 }
@@ -211,41 +322,43 @@ bool takeTurn(Board* bombB)
 int main()
 {
     printf("Welcome to Minesweeper.\n");
-    printf("Please type the dimension of the board as two comma-separated values (EX: 10,5. Limit is 65535,65535):\n");
+    printf("Please type the dimension of the board as two comma-separated values (EX: 10,5):\n");
 
     unsigned short hor, ver;
-    if (scanf("%hu,%hu", &hor, &ver) != 2) {
+    if (scanf_s("%hu,%hu", &hor, &ver) != 2) {
         printf("Invalid input. Please enter two integer values separated by a comma.\n");
         return 1;
     }
 
-    if (hor <= 0 || ver <= 0 || hor > 65535 || ver > 65535) {
-        printf("Dimensions must be positive integers between 1 and 65535.\n");
+    if (hor <= 2 || ver <= 2 || hor > 65535 || ver > 65535) {
+        printf("Dimensions must be positive integers between 2 and 65535.\n");
         return 1;
     }
 
     unsigned int bomb_count;
     printf("Please type the amount of bombs from 1 to %d.\n", (hor * ver - 1));
-    if (scanf("%d", &bomb_count) != 1 || bomb_count < 1 || bomb_count > (hor * ver - 1)) {
+    if (scanf_s("%d", &bomb_count) != 1 || bomb_count < 1 || bomb_count > (hor * ver - 1)) {
         printf("Invalid bomb count. It must be a positive integer between 1 and %d.\n", (hor * ver - 1));
         return 1;
     }
 
-    Board* bombBoard = makeBinBoard(hor, ver, bomb_count);
-    Board* guessBoard = createBoard(hor, ver);
+    Board* bombBoard = createBinaryBoard(hor, ver, bomb_count);
+    Board* maskBoard = createBoard(hor, ver);
+    Board* flagBoard = createBoard(hor, ver);
 
-    generateUserBoard(bombBoard);
+    populateNumberReferences(bombBoard);
 
     // DEBUG LINE
     printBoard(bombBoard);
 
     bool gameOver = false;
     while (!gameOver) {
-        gameOver = takeTurn(bombBoard);
+        gameOver = takeTurn(bombBoard, flagBoard);
     }
 
     freeBoard(bombBoard);
-    freeBoard(guessBoard);
+    freeBoard(maskBoard);
+    freeBoard(flagBoard);
 
     printf("Game Over!\n");
     return 0;
