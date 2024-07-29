@@ -298,6 +298,54 @@ unsigned short* convertGuessCoords(Guess* guess, Board* board)
 }
 
 /**
+ * @brief Destroys spaces around a box if it is empty
+ *
+ * This function will propogate non-bomb spaces and destroy them
+ * if, stopping when it is a bomb
+ * @param bombB A pointer to the Board structure containing the bomb placements.
+ * @param flagB A pointer to the Board structure containing the flag placements.
+ * @param board A pointer to the Board structure of the revealed squares.
+ * @param hor An unsigned int for the horizontal coordinate of the square.
+ * @param ver An unsigned int for the vertical coordinate of the square.
+ */
+
+void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB,
+    unsigned short hor, unsigned short ver)
+{
+    int directions[8][2] = {
+        { -1, -1 }, { -1, 0 }, { -1, 1 },
+        { 0, -1 }, { 0, 1 },
+        { 1, -1 }, { 1, 0 }, { 1, 1 }
+    };
+
+    // Check bounds first
+    if (hor < 0 || hor >= bombB->hor || ver < 0 || ver >= bombB->ver) {
+        return;
+    }
+
+    // If the space is already visible or flagged, do nothing
+    if (maskB->data[hor][ver] == 1 || flagB->data[hor][ver] == 1) {
+        return;
+    }
+
+    // Mark the current cell as visible
+    maskB->data[hor][ver] = 1;
+
+    // If the space is not a bomb and is empty, recursively check surrounding cells
+    if (bombB->data[hor][ver] == 0) {
+        for (int dir = 0; dir < 8; dir++) {
+            unsigned short newHor = hor + directions[dir][0];
+            unsigned short newVer = ver + directions[dir][1];
+
+            // Check bounds to avoid accessing out-of-bounds memory
+            if (newHor >= 0 && newHor < bombB->hor && newVer >= 0 && newVer < bombB->ver) {
+                destroySpacesAround(bombB, flagB, maskB, newHor, newVer);
+            }
+        }
+    }
+}
+
+/**
  * @brief Processes a user's guess and determines if it hits a bomb.
  *
  * This function handles the user's guess by checking for validity,
@@ -306,6 +354,7 @@ unsigned short* convertGuessCoords(Guess* guess, Board* board)
  *
  * @param bombB A pointer to the Board structure containing the bomb placements.
  * @param flagB A pointer to the Board structure containing the flag placements.
+ * @param board A pointer to the Board structure of the revealed squares.
  * @return true if the guess hits a bomb, false otherwise.
  */
 
@@ -326,13 +375,14 @@ bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
         return false;
     }
     bool retVal;
-    maskB->data[guessHor][guessVer] = 1;
     if (guess->mode == 'F') { // flag mode
+        maskB->data[guessHor][guessVer] = 1;
         flagB->data[guessHor][guessVer] = 1;
         retVal = false;
     } else { // destroy mode
         flagB->data[guessHor][guessVer] = 0;
-        retVal =  bombB->data[guessHor][guessVer] == 9;
+        retVal = (bombB->data[guessHor][guessVer] == 9);
+        destroySpacesAround(bombB, flagB, maskB, guessHor, guessVer);
     }
     freeGuess(guess);
     return retVal;
