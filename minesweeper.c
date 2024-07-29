@@ -36,33 +36,25 @@ Guess* createGuess(unsigned short maxHor, unsigned short maxVer)
     char gMode;
     // scanf_s needs a character size buffer, that is what the 1 is for
     int result = scanf_s(" %c %hu,%hu", &gMode, 1, &gHor, &gVer);
-    printf("User Guess: Mode: %c, Hor: %hu, Ver: %hu\n", gMode, gHor, gVer);
 
     // Validate input
     if (result != 3 || (gMode != 'F' && gMode != 'D')) {
         printf("Invalid input. Please enter a valid mode and coordinates.\n");
-        //return NULL;
-    }
-
-    // Check if coordinates are within bounds
-    else if (gHor < 1 || gHor > maxHor || gVer < 1 || gVer > maxVer) {
+        return NULL;
+    } else if (gHor < 1 || gHor > maxHor || gVer < 1 || gVer > maxVer) { // Check if coordinates are within bounds
         printf("Coordinates out of bounds. Please enter coordinates within the board dimensions.\n");
-        //return NULL;
+        return NULL;
     }
 
     Guess* guess = (Guess*)malloc(sizeof(Guess));
     if (guess == NULL) {
         fprintf(stderr, "Failed to allocate memory for guess structure\n");
-        //return NULL;
+        return NULL;
     }
 
     guess->hor = gHor - 1;
     guess->ver = gVer - 1;
     guess->mode = gMode;
-
-    // Debugging output
-    printf("User Guess: Mode: %c, Hor: %hu, Ver: %hu\n", gMode, gHor, gVer);
-    printf("Converted Guess: Hor: %hu, Ver: %hu\n", guess->hor, guess->ver);
 
     return guess;
 }
@@ -252,6 +244,35 @@ void printBoard(Board* board)
 }
 
 /**
+ * @brief Prints the game board to the console for the user.
+ *
+ * This function prints the game board to the console, with flags represented by an 'F'
+ * and other cells showing X as undiscovered
+ *
+ * @param board A pointer to the Board structure of the bombs.
+ * @param board A pointer to the Board structure of the flags.
+ * @param board A pointer to the Board structure of the revealed squares.
+ */
+
+void printTotalBoard(Board* bomb, Board* flag, Board* usermask)
+{
+    for (int j = bomb->ver - 1; j >= 0; j--) {
+        for (int i = 0; i < bomb->hor; i++) {
+            if (usermask->data[i][j] == 1) {
+                if (flag->data[i][j] == 1) {
+                    printf(" F");
+                } else {
+                    printf(" %hu", bomb->data[i][j]);
+                }
+            } else {
+                printf(" X");
+            }
+        }
+        printf("\n");
+    }
+}
+
+/**
  * @brief Converts user guess coordinates to board coordinates.
  *
  * This function converts the user-provided guess coordinates from 1-based indexing to
@@ -288,7 +309,7 @@ unsigned short* convertGuessCoords(Guess* guess, Board* board)
  * @return true if the guess hits a bomb, false otherwise.
  */
 
-bool takeTurn(Board* bombB, Board* flagB)
+bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
 {
     Guess* guess = createGuess(bombB->hor, bombB->ver);
     if (guess == NULL) {
@@ -304,21 +325,17 @@ bool takeTurn(Board* bombB, Board* flagB)
         freeGuess(guess);
         return false;
     }
-
-    // Print the corresponding row of the board
-    printf("Guess coordinates: %hu,%hu\n", guessHor, guessVer);
-    printf("Board row at %hu: ", guessHor);
-    for (int i = 0; i < bombB->ver; i++) {
-        printf("%d ", bombB->data[guessHor][i]);
+    bool retVal;
+    maskB->data[guessHor][guessVer] = 1;
+    if (guess->mode == 'F') { // flag mode
+        flagB->data[guessHor][guessVer] = 1;
+        retVal = false;
+    } else { // destroy mode
+        flagB->data[guessHor][guessVer] = 0;
+        retVal =  bombB->data[guessHor][guessVer] == 9;
     }
-    printf("\n");
-
-    printf("Bomb value: %d\n", bombB->data[guessHor][guessVer]);
-
-    bool isBomb = (bombB->data[guessHor][guessVer] == 9);
-
     freeGuess(guess);
-    return isBomb;
+    return retVal;
 }
 
 int main()
@@ -351,11 +368,14 @@ int main()
     populateNumberReferences(bombBoard);
 
     // DEBUG LINE
+    printf("DEBUG:\n");
     printBoard(bombBoard);
+    printf("\n");
 
     bool gameOver = false;
     while (!gameOver) {
-        gameOver = takeTurn(bombBoard, flagBoard);
+        printTotalBoard(bombBoard, flagBoard, maskBoard);
+        gameOver = takeTurn(bombBoard, flagBoard, maskBoard);
     }
 
     freeBoard(bombBoard);
