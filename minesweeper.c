@@ -34,28 +34,30 @@ Guess* createGuess(unsigned short maxHor, unsigned short maxVer)
     unsigned short gVer;
     unsigned short gHor;
     char gMode;
-    int result = scanf(" %c %hu,%hu", &gMode, &gHor, &gVer);
+    // scanf_s needs a character size buffer, that is what the 1 is for
+    int result = scanf_s(" %c %hu,%hu", &gMode, 1, &gHor, &gVer);
+    printf("User Guess: Mode: %c, Hor: %hu, Ver: %hu\n", gMode, gHor, gVer);
 
     // Validate input
     if (result != 3 || (gMode != 'F' && gMode != 'D')) {
         printf("Invalid input. Please enter a valid mode and coordinates.\n");
-        return NULL;
+        //return NULL;
     }
 
     // Check if coordinates are within bounds
-    if (gHor < 1 || gHor > maxHor || gVer < 1 || gVer > maxVer) {
+    else if (gHor < 1 || gHor > maxHor || gVer < 1 || gVer > maxVer) {
         printf("Coordinates out of bounds. Please enter coordinates within the board dimensions.\n");
-        return NULL;
+        //return NULL;
     }
 
     Guess* guess = (Guess*)malloc(sizeof(Guess));
     if (guess == NULL) {
         fprintf(stderr, "Failed to allocate memory for guess structure\n");
-        return NULL;
+        //return NULL;
     }
 
-    guess->hor = gHor - 1; // Convert to 0-based index
-    guess->ver = gVer - 1; // Convert to 0-based index
+    guess->hor = gHor - 1;
+    guess->ver = gVer - 1;
     guess->mode = gMode;
 
     // Debugging output
