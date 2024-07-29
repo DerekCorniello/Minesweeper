@@ -388,6 +388,32 @@ bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
     return retVal;
 }
 
+/**
+ * @brief Compares the bombs and flags
+ *
+ * This function checks to see if the flags and bombs match
+ *
+ * @param bombCount A pointer to an uint for the bomb count
+ * @param bomb A pointer to the Board structure containing bombs.
+ * @param flag A pointer to the Board structure containing flags.
+ */
+
+bool compBoards(unsigned int bombCount, Board* bomb, Board* flag)
+{
+    unsigned int flagCount = 0;
+    for (int x = 0; x < bomb->hor; x++) {
+        for (int y = 0; y < bomb->ver; y++) {
+            if (bomb->data[x][y] == 9 && flag->data[x][y] != 1) {
+                return false;
+            } else if (bomb->data[x][y] == 9) {
+                flagCount++;
+            }
+        }
+    }
+    printf("flags: %d, bombs: %d", flagCount, bombCount);
+    return flagCount == bombCount;
+}
+
 int main()
 {
     printf("Welcome to Minesweeper.\n");
@@ -423,15 +449,43 @@ int main()
     printf("\n");
 
     bool gameOver = false;
+    char* message = "";
     while (!gameOver) {
         printTotalBoard(bombBoard, flagBoard, maskBoard);
-        gameOver = takeTurn(bombBoard, flagBoard, maskBoard);
+        if (takeTurn(bombBoard, flagBoard, maskBoard)) {
+            gameOver = true;
+            message = "\nYou hit a bomb! Game Over!\n";
+        } else if (compBoards(bomb_count, bombBoard, flagBoard)) {
+            gameOver = true;
+            message = "\nYou identified all the bombs! You win!\n";
+        }
     }
+
+    printf_s(message);
+    printf("\n\n");
+
+    // shows the complete board when done
+    for (int i = 0; i < maskBoard->hor; i++) {
+        for (int j = 0; j < maskBoard->ver; j++) {
+            if (maskBoard->data[i][j] == 0) {
+                maskBoard->data[i][j] = 1;
+            }
+        }
+    }
+    for (int i = 0; i < flagBoard->hor; i++) {
+        for (int j = 0; j < flagBoard->ver; j++) {
+            if (bombBoard->data[i][j] == 9) {
+                flagBoard->data[i][j] = 1;
+            } else {
+                flagBoard->data[i][j] = 0;
+            }
+        }
+    }
+    printTotalBoard(bombBoard, flagBoard, maskBoard);
 
     freeBoard(bombBoard);
     freeBoard(maskBoard);
     freeBoard(flagBoard);
 
-    printf("Game Over!\n");
     return 0;
 }
