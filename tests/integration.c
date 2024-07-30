@@ -1,8 +1,12 @@
 #include <assert.h>
 #include <stdio.h>
 
-int integration_test()
+void integration_test()
 {
     printf("Integration Tests Passed");
+}
+
+int main() {
+    integration_test();
     return 0;
 }

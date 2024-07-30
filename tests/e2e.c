@@ -1,8 +1,12 @@
 #include <assert.h>
 #include <stdio.h>
 
-int endtoend_tests()
+void endtoend_tests()
 {
     printf("End-to-End Tests Passed");
+}
+
+int main() {
+    endtoend_tests();
     return 0;
 }
