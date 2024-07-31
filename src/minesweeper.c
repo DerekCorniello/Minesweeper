@@ -3,18 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-typedef struct {
-    unsigned short hor;
-    unsigned short ver;
-    unsigned short** data;
-} Board;
-
-typedef struct {
-    unsigned short hor;
-    unsigned short ver;
-    char mode;
-} Guess;
+#include "minesweeper.h"
 
 /**
  * @brief Creates a new guess
@@ -23,25 +12,20 @@ typedef struct {
  * specific horizontal and vertical (gHor and gVer) coordinates
  * which will be converted later
  *
+ * @param gMode A char with the mode
+ * @param gVer An unsigned short int for the guess vertical coordinate
+ * @param gHor An unsigned short int for the guess horizontal coordinate
+ * @param MAX_HOR
  * @return A pointer to the newly created guess
  */
 
-Guess* createGuess(unsigned short maxHor, unsigned short maxVer)
+Guess* createGuess(char gMode, unsigned short gVer, unsigned short gHor)
 {
-    printf("Enter 'F' or 'D' (Flag or Destroy), followed by coordinates, starting at 1,1 from the bottom left.\n");
-    printf("Ex: F 1,1 -> flags the bottom left hand corner\n");
-
-    unsigned short gVer;
-    unsigned short gHor;
-    char gMode;
-    // scanf_s needs a character size buffer, that is what the 1 is for
-    int result = scanf_s(" %c %hu,%hu", &gMode, 1, &gHor, &gVer);
-
     // Validate input
-    if (result != 3 || (gMode != 'F' && gMode != 'D')) {
+    if (gMode != 'F' && gMode != 'D') {
         printf("Invalid input. Please enter a valid mode and coordinates.\n");
         return NULL;
-    } else if (gHor < 1 || gHor > maxHor || gVer < 1 || gVer > maxVer) { // Check if coordinates are within bounds
+    } else if (gHor < 1 || gHor > MAX_HOR || gVer < 1 || gVer > MAX_VER) { // Check if coordinates are within bounds
         printf("Coordinates out of bounds. Please enter coordinates within the board dimensions.\n");
         return NULL;
     }
@@ -360,7 +344,20 @@ void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB,
 
 bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
 {
-    Guess* guess = createGuess(bombB->hor, bombB->ver);
+    printf("Enter 'F' or 'D' (Flag or Destroy), followed by coordinates, starting at 1,1 from the bottom left.\n");
+    printf("Ex: F 1,1 -> flags the bottom left hand corner\n");
+
+    unsigned short gVer;
+    unsigned short gHor;
+    char gMode;
+    // scanf_s needs a character size buffer, that is what the 1 is for
+    int result = scanf_s(" %c %hu,%hu", &gMode, 1, &gHor, &gVer);
+    Guess* guess;
+    if (result == 3) {
+       guess = createGuess(gMode, gVer, gHor);
+    } else {
+        return false;
+    }
     if (guess == NULL) {
         return false;
     }

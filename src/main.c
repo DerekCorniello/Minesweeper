@@ -40,6 +40,7 @@ int main()
     char* message = "";
     while (!gameOver) {
         printTotalBoard(bombBoard, flagBoard, maskBoard);
+
         if (takeTurn(bombBoard, flagBoard, maskBoard)) {
             gameOver = true;
             message = "\nYou hit a bomb! Game Over!\n";

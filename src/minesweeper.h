@@ -18,7 +18,7 @@ typedef struct {
     char mode;
 } Guess;
 
-Guess* createGuess(unsigned short maxHor, unsigned short maxVer);
+Guess* createGuess(char gMode, unsigned short gVer, unsigned short gHor);
 void freeGuess(Guess* g);
 
 Board* createBoard(unsigned short hor, unsigned short ver);
