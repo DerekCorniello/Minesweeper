@@ -23,16 +23,13 @@ Guess* createGuess(char gMode, unsigned short gVer, unsigned short gHor)
 {
     // Validate input
     if (gMode != 'F' && gMode != 'D') {
-        printf("Invalid input. Please enter a valid mode and coordinates.\n");
         return NULL;
     } else if (gHor < 1 || gHor > MAX_HOR || gVer < 1 || gVer > MAX_VER) { // Check if coordinates are within bounds
-        printf("Coordinates out of bounds. Please enter coordinates within the board dimensions.\n");
         return NULL;
     }
 
     Guess* guess = (Guess*)malloc(sizeof(Guess));
     if (guess == NULL) {
-        fprintf(stderr, "Failed to allocate memory for guess structure\n");
         return NULL;
     }
 
@@ -74,7 +71,6 @@ Board* createBoard(unsigned short hor, unsigned short ver)
 {
     Board* board = (Board*)malloc(sizeof(Board));
     if (board == NULL) {
-        fprintf(stderr, "Failed to allocate memory for board structure\n");
         return NULL;
     }
 
@@ -82,7 +78,6 @@ Board* createBoard(unsigned short hor, unsigned short ver)
     board->ver = ver;
     board->data = (unsigned short**)malloc(hor * sizeof(unsigned short*));
     if (board->data == NULL) {
-        fprintf(stderr, "Failed to allocate memory for board data pointers\n");
         free(board);
         return NULL;
     }
@@ -90,7 +85,6 @@ Board* createBoard(unsigned short hor, unsigned short ver)
     for (size_t i = 0; i < hor; i++) {
         board->data[i] = (unsigned short*)malloc(ver * sizeof(unsigned short));
         if (board->data[i] == NULL) {
-            fprintf(stderr, "Failed to allocate memory for board row %zu\n", i);
             for (size_t j = 0; i > 0 && j < i; j++) {
                 free(board->data[j]);
             }
@@ -276,8 +270,6 @@ unsigned short* convertGuessCoords(Guess* guess, Board* board)
     r_val[0] = h;
     r_val[1] = v;
 
-    printf("Converted Guess: Hor: %hu, Ver: %hu\n", h, v); // Debugging
-
     return r_val;
 }
 
@@ -367,7 +359,6 @@ bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
 
     // Additional check to ensure coordinates are valid
     if (guessHor >= bombB->hor || guessVer >= bombB->ver) {
-        printf("Invalid coordinates: %hu,%hu\n", guessHor, guessVer);
         freeGuess(guess);
         return false;
     }
@@ -407,6 +398,5 @@ bool compBoards(unsigned int bombCount, Board* bomb, Board* flag)
             }
         }
     }
-    printf("flags: %d, bombs: %d", flagCount, bombCount);
     return flagCount == bombCount;
 }

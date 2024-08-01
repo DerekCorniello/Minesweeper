@@ -1,12 +1,7 @@
 #include <assert.h>
-#include <stdio.h>
+#include "../src/minesweeper.h"
 
-void integration_test()
+int main()
 {
-    printf("Integration Tests Passed");
-}
-
-int main() {
-    integration_test();
     return 0;
 }

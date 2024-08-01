@@ -1,12 +1,7 @@
-#include <stdio.h>
+#include "../src/minesweeper.h"
 #include <assert.h>
 
-void unit_tests()
+int main()
 {
-    printf("Unit Tests Passed");
-}
-
-int main() {
-    unit_tests();
     return 0;
 }
