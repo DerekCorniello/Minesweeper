@@ -24,13 +24,11 @@ void freeGuess(Guess* g);
 Board* createBoard(unsigned short hor, unsigned short ver);
 void freeBoard(Board* board);
 
-Board* createBinaryBoard(unsigned short hor, unsigned short ver, unsigned int bomb_count);
+Board* createBombBoard(unsigned short hor, unsigned short ver, unsigned int bomb_count);
 void populateNumberReferences(Board* board);
 
 void printBoard(Board* board);
 void printTotalBoard(Board* bomb, Board* flag, Board* usermask);
-
-unsigned short* convertGuessCoords(Guess* guess, Board* board);
 
 void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB, unsigned short hor, unsigned short ver);
 

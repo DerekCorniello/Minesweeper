@@ -25,7 +25,7 @@ int main()
         return 1;
     }
 
-    Board* bombBoard = createBinaryBoard(hor, ver, bomb_count);
+    Board* bombBoard = createBombBoard(hor, ver, bomb_count);
     Board* maskBoard = createBoard(hor, ver);
     Board* flagBoard = createBoard(hor, ver);
 

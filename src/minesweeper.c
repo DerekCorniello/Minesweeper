@@ -69,6 +69,10 @@ void freeGuess(Guess* g)
 
 Board* createBoard(unsigned short hor, unsigned short ver)
 {
+    // board is too small here, needs to be at least 2 by 2
+    if(hor < 2 || ver < 2) {
+        return NULL;
+    }
     Board* board = (Board*)malloc(sizeof(Board));
     if (board == NULL) {
         return NULL;
@@ -138,8 +142,11 @@ void freeBoard(Board* board)
  * @return A pointer to the newly created Board structure, or NULL if memory allocation fails.
  */
 
-Board* createBinaryBoard(unsigned short hor, unsigned short ver, unsigned int bomb_count)
+Board* createBombBoard(unsigned short hor, unsigned short ver, unsigned int bomb_count)
 {
+    if (bomb_count >= ver * hor) {
+        return NULL;
+    }
     Board* board = createBoard(hor, ver);
 
     srand((unsigned int)time(NULL));
@@ -248,29 +255,6 @@ void printTotalBoard(Board* bomb, Board* flag, Board* usermask)
         }
         printf("\n");
     }
-}
-
-/**
- * @brief Converts user guess coordinates to board coordinates.
- *
- * This function converts the user-provided guess coordinates from 1-based indexing to
- * 0-based indexing used internally by the board. It returns a dynamically allocated array
- * containing the converted coordinates.
- *
- * @param guess A pointer to the Guess structure containing the user's guess coordinates.
- * @param board A pointer to the Board structure to which the coordinates will be applied.
- * @return A dynamically allocated array of two unsigned shorts representing the converted coordinates.
- */
-
-unsigned short* convertGuessCoords(Guess* guess, Board* board)
-{
-    unsigned short h = guess->hor;
-    unsigned short v = guess->ver;
-    unsigned short* r_val = malloc(2 * sizeof(unsigned short));
-    r_val[0] = h;
-    r_val[1] = v;
-
-    return r_val;
 }
 
 /**
