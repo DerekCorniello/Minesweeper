@@ -30,7 +30,7 @@ void populateNumberReferences(Board* board);
 void printBoard(Board* board);
 void printTotalBoard(Board* bomb, Board* flag, Board* usermask);
 
-void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB, unsigned short hor, unsigned short ver);
+void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB, unsigned short hor, unsigned short ver, bool first_guess);
 
 bool takeTurn(Board* bombB, Board* flagB, Board* maskB);
 

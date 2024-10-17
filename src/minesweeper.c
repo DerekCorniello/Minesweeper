@@ -1,9 +1,9 @@
 
+#include "minesweeper.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "minesweeper.h"
 
 /**
  * @brief Creates a new guess
@@ -70,7 +70,7 @@ void freeGuess(Guess* g)
 Board* createBoard(unsigned short hor, unsigned short ver)
 {
     // board is too small here, needs to be at least 2 by 2
-    if(hor < 2 || ver < 2) {
+    if (hor < 2 || ver < 2) {
         return NULL;
     }
     Board* board = (Board*)malloc(sizeof(Board));
@@ -270,7 +270,7 @@ void printTotalBoard(Board* bomb, Board* flag, Board* usermask)
  */
 
 void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB,
-    unsigned short hor, unsigned short ver)
+    unsigned short hor, unsigned short ver, bool first_guess)
 {
     int directions[8][2] = {
         { -1, -1 }, { -1, 0 }, { -1, 1 },
@@ -279,6 +279,7 @@ void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB,
     };
 
     // Check bounds first
+    // redundant?
     if (hor < 0 || hor >= bombB->hor || ver < 0 || ver >= bombB->ver) {
         return;
     }
@@ -296,11 +297,7 @@ void destroySpacesAround(Board* bombB, Board* flagB, Board* maskB,
         for (int dir = 0; dir < 8; dir++) {
             unsigned short newHor = hor + directions[dir][0];
             unsigned short newVer = ver + directions[dir][1];
-
-            // Check bounds to avoid accessing out-of-bounds memory
-            if (newHor >= 0 && newHor < bombB->hor && newVer >= 0 && newVer < bombB->ver) {
-                destroySpacesAround(bombB, flagB, maskB, newHor, newVer);
-            }
+            destroySpacesAround(bombB, flagB, maskB, (hor + directions[dir][0]), (ver + directions[dir][1]), false);
         }
     }
 }
@@ -330,7 +327,7 @@ bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
     int result = scanf_s(" %c %hu,%hu", &gMode, 1, &gHor, &gVer);
     Guess* guess;
     if (result == 3) {
-       guess = createGuess(gMode, gVer, gHor);
+        guess = createGuess(gMode, gVer, gHor);
     } else {
         return false;
     }
@@ -352,9 +349,10 @@ bool takeTurn(Board* bombB, Board* flagB, Board* maskB)
         flagB->data[guessHor][guessVer] = 1;
         retVal = false;
     } else { // destroy mode
+        maskB->data[guessHor][guessVer] = 0;
         flagB->data[guessHor][guessVer] = 0;
         retVal = (bombB->data[guessHor][guessVer] == 9);
-        destroySpacesAround(bombB, flagB, maskB, guessHor, guessVer);
+        destroySpacesAround(bombB, flagB, maskB, guessHor, guessVer, true);
     }
     freeGuess(guess);
     return retVal;

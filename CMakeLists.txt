@@ -20,6 +20,27 @@ target_link_libraries(e2e_test minesweeper)
 
 enable_testing()
 
+# Add tests to CTest
 add_test(NAME UnitTests COMMAND unit_test)
 add_test(NAME IntegrationTests COMMAND integration_test)
 add_test(NAME E2ETests COMMAND e2e_test)
+
+# Define Dr. Memory path
+find_program(DRMEMORY_EXECUTABLE drmemory)
+
+# Custom command to run Dr. Memory on all test executables
+add_custom_target(
+    test_with_drmemory
+    COMMAND ${DRMEMORY_EXECUTABLE} -- ${CMAKE_BINARY_DIR}/unit_test
+    COMMAND ${DRMEMORY_EXECUTABLE} -- ${CMAKE_BINARY_DIR}/integration_test
+    COMMAND ${DRMEMORY_EXECUTABLE} -- ${CMAKE_BINARY_DIR}/e2e_test
+    COMMENT "Running all tests with Dr. Memory..."
+)
+
+# Add a custom command to run tests with Dr. Memory
+add_custom_command(
+    TARGET test_with_drmemory
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test_with_drmemory
+    COMMENT "Running all tests with Dr. Memory after build..."
+)
