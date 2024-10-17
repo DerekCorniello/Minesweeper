@@ -4,6 +4,7 @@
 
 int main()
 {
+    printf("\e[1;1H\e[2J"); // clear console screen
     printf("Welcome to Minesweeper.\n");
     printf("Please type the dimension of the board as two comma-separated values (EX: 10,5):\n");
 
@@ -31,20 +32,18 @@ int main()
 
     populateNumberReferences(bombBoard);
 
-    // DEBUG LINE
-    printf("DEBUG:\n");
-    printBoard(bombBoard);
-    printf("\n");
-
     bool gameOver = false;
     char* message = "";
     while (!gameOver) {
+        printf("\e[1;1H\e[2J"); // clear console screen
         printTotalBoard(bombBoard, flagBoard, maskBoard);
 
         if (takeTurn(bombBoard, flagBoard, maskBoard)) {
+            printf("\e[1;1H\e[2J"); // clear console screen
             gameOver = true;
             message = "\nYou hit a bomb! Game Over!\n";
         } else if (compBoards(bomb_count, bombBoard, flagBoard)) {
+            printf("\e[1;1H\e[2J"); // clear console screen
             gameOver = true;
             message = "\nYou identified all the bombs! You win!\n";
         }
